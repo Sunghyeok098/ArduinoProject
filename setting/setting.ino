@@ -29,7 +29,7 @@ void loop() {
   // read from the serial monitor and send to the HM-10 module
   if (Serial.available() > 0) {
     char c = Serial.read();
-
+ 
     // HM-10 does not accept CR and LF character
     if (c != CR && c != LF) {
       bleSerial.write(c);

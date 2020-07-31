@@ -10,6 +10,7 @@
 // joystick pins
 #define VRX (A0)
 #define VRY (A1)
+#define VRZ (A2)
 
 // MQ-3 pins
 #define Mq3Pin (A5)
@@ -52,23 +53,50 @@ int greenPin = 6;
 int bluePin = 5;
 
 void setup() {
-  bleSerial.begin(9600);
+
+  
+  pinMode(VRX, INPUT); 
+  pinMode(VRY, INPUT); 
+  pinMode(VRZ, INPUT); 
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
+  Serial.begin(9600);
+  bleSerial.begin(38400);
+  Serial.println("ATcommand!");
+  bleSerial.write("AT+CONC2020B000224");
+  
 }
 
 void loop() {
+
   // read joystick values
   int vrx = analogRead(VRX); //analogRead(A0)
   int vry = analogRead(VRY); //analogRead(A1)
+  int vrz = analogRead(VRZ); //analogRead(A2)
   //int read_mq3 = analogRead(Mq3Pin); //analogRead(A5)
 
+  /*
+  Serial.print(vrx);
+  Serial.print(',');
+  Serial.print(vry);
+  Serial.print(',');
+  Serial.println(vrz);
+  */
+  
   //if (read_mq3 < 80) {
   // ignore 10% error around 512 since it not accurate
   vrx = adjustJoystickValue(vrx);
   vry = adjustJoystickValue(vry);
-
+  vrz = adjustJoystickValue(vrz);
+  
+  Serial.print(vrx);
+  Serial.print(',');
+  Serial.print(vry);
+  Serial.print(',');
+  Serial.println(vrz);
+  
+  
   //Light values
   analogWrite(redPin, 0);
   analogWrite(greenPin, 0);
@@ -77,7 +105,12 @@ void loop() {
   // send data over BLE
   bleSerial.print(vrx);
   bleSerial.print(",");
-  bleSerial.println(vry);
+  bleSerial.print(vry);
+  bleSerial.print(",");
+  bleSerial.println(vrz);
+  delay(500);
+
+
   //}
   /*
     else{
