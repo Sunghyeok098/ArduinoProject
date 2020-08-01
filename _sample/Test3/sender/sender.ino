@@ -46,6 +46,8 @@ void loop() {
   Serial.println(vrz);
   delay(100);
 
+  BTSerial.print(1);
+  BTSerial.print(",");
   BTSerial.print(vrx);
   BTSerial.print(",");
   BTSerial.print(vry);
