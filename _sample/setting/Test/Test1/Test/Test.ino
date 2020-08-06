@@ -20,5 +20,5 @@ void loop ()
     Serial.println(value);
     oldValue = value;
  
-    delay(1000);
+   
 }

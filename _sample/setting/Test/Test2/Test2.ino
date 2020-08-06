@@ -79,7 +79,7 @@ heartbeatDetected(int IRSensorPin, int delay)
 // Arduino main code
 ////////////////////////////////////////////////////////////////////////
 //int ledPin=13;
-int analogPin=0;
+int analogPin=A0;
 
 void setup()
 {
