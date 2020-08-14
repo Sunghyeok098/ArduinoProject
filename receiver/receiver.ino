@@ -1,4 +1,3 @@
-
 #include <SoftwareSerial.h>
 
 // HM-10 pins
@@ -21,6 +20,9 @@ SoftwareSerial bleSerial(BLE_RX, BLE_TX);
 #define ENB 11
 #define IN3 9
 #define IN4 10
+
+//alcohol senser pin 
+#define alco_pin (A0) // !!! alcohol sensor pin number 지정!!
 
 // The minimum value of PWM to drive an DC motor.
 // The value should be set according to the motor characteristics
@@ -108,15 +110,17 @@ void setup() {
   pinMode(ENB, OUTPUT);
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
+  // set alcohol pins INPUT mode
+  pinMode(alco_pin, INPUT);
 }
 
 void loop() {
   // received controll command
   if (bleSerial.available() > 0) {
     // read joystick values from analog pins
+    int flag = bleSerial.parseInt(); //bmp control value
     int vrx = bleSerial.parseInt();
     int vry = bleSerial.parseInt();
-
 
     // calculate speed of both motors according to the x axis
     int pwmX = convertToPWM(vrx);
@@ -128,16 +132,22 @@ void loop() {
     pwmL = pwmL + pwmY;
     pwmR = pwmR - pwmY;
 
-    Serial.print(vrx);
-    Serial.print(',');
-    Serial.print(vry);
-    Serial.print(" : ");
-    Serial.print(pwmL);
-    Serial.print(',');
-    Serial.println(pwmR);
+    if(flag == 0){ //bpm 이 정상범위가 아니면
+
+      int alco_value = analogRead(alco_pin); //alcohol senser pin read
+      
+      //범위 알아서 지정
+      if(alco_value < 50){ //alcohol sensor value is normal, drive RC car
+        drive(pwmL, pwmR);
+      }
+
+    }
+
+    else{ //bpm 정상범위이면, drive RC car
+
+      drive(pwmL, pwmR);
+    }
     
 
-    // happy drive!
-    drive(pwmL, pwmR);
   }
 }
