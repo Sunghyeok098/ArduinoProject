@@ -1,11 +1,6 @@
 #include <SoftwareSerial.h>
 
-// HM-10 pins
-#define BLE_RX (4)
-#define BLE_TX (5)
-
-// HM-10 module instance
-SoftwareSerial bleSerial(BLE_RX, BLE_TX);
+SoftwareSerial mySerial(4, 5); //블루투스의 Tx, Rx핀을 2번 3번핀으로 설정
 
 // joystick sensor values
 #define VR_MIN_VALUE (0)
@@ -21,45 +16,16 @@ SoftwareSerial bleSerial(BLE_RX, BLE_TX);
 #define IN3 9
 #define IN4 10
 
-//alcohol senser pin 
+//alcohol senser pin
 #define alco_pin (A0) // !!! alcohol sensor pin number 지정!!
 
-// The minimum value of PWM to drive an DC motor.
-// The value should be set according to the motor characteristics
-// of a vehicle. In my system, left motor works above 95 whereas
-// right motor moves above 85. To drive the car as straight as
-// possible, I make motors stop under 95.
-//
 #define MOTOR_MIN_PWM (95)
 #define MOTOR_MAX_PWM (255)
 
-/*
-   Convert a value from joystick to appropriate PWM value.
-
-   @param value a integer value between 0 and 1023 read from joystick.
-   @returns a mapped integer value between -255 and 255 which used to
-            drive a motor.
-*/
 int convertToPWM(int value) {
   return map(value, VR_MIN_VALUE, VR_MAX_VALUE, -MOTOR_MAX_PWM, MOTOR_MAX_PWM);
 }
 
-/*
-   Drives two motors according to the given pwm values.
-
-   To avoid write several functions for each motor direction, I simply
-   drive motor forward if the given value is positive and backward if
-   negative. To stop a motor, just give 0.
-
-   Since every DC motors have differenct characteristics, I stop a
-   motor if the absolute value of the given pwm value is less than
-   MOTOR_MIN_PWM to drive the vehicle as strait as possible.
-
-   @param pwmL PWM value of left motor. An integer value between
-               -255 and 255.
-   @param pwmR PWM value of right motor. An integer value between
-               -255 and 255.
-*/
 void drive(int pwmL, int pwmR) {
   // constrain motor speed between -255 and 255
   pwmL = constrain(pwmL, -MOTOR_MAX_PWM, MOTOR_MAX_PWM);
@@ -98,10 +64,12 @@ void drive(int pwmL, int pwmR) {
   analogWrite(ENB, abs(pwmR));
 }
 
+
 void setup() {
-  // set up HM-10 module
+
   Serial.begin(9600);
-  bleSerial.begin(9600);
+
+  mySerial.begin(9600); // baud rate 9600으로 설정
 
   // set all the motor pins OUTPUT mode
   pinMode(ENA, OUTPUT);
@@ -110,17 +78,27 @@ void setup() {
   pinMode(ENB, OUTPUT);
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
+
   // set alcohol pins INPUT mode
   pinMode(alco_pin, INPUT);
 }
 
+
+
 void loop() {
-  // received controll command
-  if (bleSerial.available() > 0) {
-    // read joystick values from analog pins
-    int flag = bleSerial.parseInt(); //bmp control value
-    int vrx = bleSerial.parseInt();
-    int vry = bleSerial.parseInt();
+
+  if (mySerial.available()) { // 넘어온 데이터가 존재하면
+
+    int flag = mySerial.parseInt(); //bmp control value
+    //int flag = 1; //bmp control value
+    int vrx = mySerial.parseInt();
+    int vry = mySerial.parseInt();
+    Serial.print(flag);
+    Serial.print(",");
+    Serial.print(vrx);
+    Serial.print(",");
+    Serial.println(vry);
+    //Serial.write(mySerial.read()); // 시리얼에 출력
 
     // calculate speed of both motors according to the x axis
     int pwmX = convertToPWM(vrx);
@@ -132,22 +110,32 @@ void loop() {
     pwmL = pwmL + pwmY;
     pwmR = pwmR - pwmY;
 
-    if(flag == 0){ //bpm 이 정상범위가 아니면
+    if (flag == 0) { //bpm 이 정상범위가 아니면
+      //LED red
+    }
+
+    else if (flag == 2) {
 
       int alco_value = analogRead(alco_pin); //alcohol senser pin read
-      
+
+      //LED 불 하는거 blue
+
+      Serial.println(123221);
+
       //범위 알아서 지정
-      if(alco_value < 50){ //alcohol sensor value is normal, drive RC car
+      if (alco_value < 50) { //alcohol sensor value is normal, drive RC car
+        //LED green
         drive(pwmL, pwmR);
       }
-
     }
 
-    else{ //bpm 정상범위이면, drive RC car
-
+    else { //bpm 정상범위이면, drive RC car
+      //LED green
       drive(pwmL, pwmR);
     }
-    
 
   }
+
+
+
 }
