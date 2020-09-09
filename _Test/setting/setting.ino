@@ -1,3 +1,10 @@
+// arduino-rc-car-ble-setup.ino
+// Sketch to setup HM-10 module on my Arduino RC car.
+// 
+// Making a rc-car using Arduino
+// http://myoungjinkim.github.io
+//
+
 #include <SoftwareSerial.h>
 
 // HM-10 pins
@@ -29,12 +36,12 @@ void loop() {
   // read from the serial monitor and send to the HM-10 module
   if (Serial.available() > 0) {
     char c = Serial.read();
- 
+    
     // HM-10 does not accept CR and LF character
     if (c != CR && c != LF) {
       bleSerial.write(c);
     }
-
+    
     // echo user input to the main window
     if (newLine) {
       Serial.print("\r\n>");

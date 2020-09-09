@@ -1,6 +1,6 @@
 #include <SoftwareSerial.h>
 
-SoftwareSerial mySerial(4, 5); //블루투스의 Tx, Rx핀을 2번 3번핀으로 설정
+SoftwareSerial mySerial(4, 5); //블루투스의 Tx, Rx핀을 4번 5번핀으로 설정
 
 // joystick sensor values
 #define VR_MIN_VALUE (0)
@@ -16,8 +16,13 @@ SoftwareSerial mySerial(4, 5); //블루투스의 Tx, Rx핀을 2번 3번핀으로
 #define IN3 9
 #define IN4 10
 
+//LED pin
+#define LED_R 2       // R의 핀 번호 2
+#define LED_G 3       // G의 핀 번호 3
+#define LED_B 12       // B의 핀 번호 12
+
 //alcohol senser pin
-#define alco_pin (A0) // !!! alcohol sensor pin number 지정!!
+#define alco_pin (A0) // !!! alcohol sensor pin number 
 
 #define MOTOR_MIN_PWM (95)
 #define MOTOR_MAX_PWM (255)
@@ -68,8 +73,7 @@ void drive(int pwmL, int pwmR) {
 void setup() {
 
   Serial.begin(9600);
-
-  mySerial.begin(9600); // baud rate 9600으로 설정
+  mySerial.begin(9600); // 
 
   // set all the motor pins OUTPUT mode
   pinMode(ENA, OUTPUT);
@@ -79,6 +83,11 @@ void setup() {
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
 
+  // set pin mode 
+  pinMode(LED_B, OUTPUT);
+  pinMode(LED_G, OUTPUT);
+  pinMode(LED_R, OUTPUT);
+
   // set alcohol pins INPUT mode
   pinMode(alco_pin, INPUT);
 }
@@ -87,19 +96,18 @@ void setup() {
 
 void loop() {
 
-  if (mySerial.available()) { // 넘어온 데이터가 존재하면
+  if (mySerial.available()) { 
 
     int flag = mySerial.parseInt(); //bmp control value
-    //int flag = 1; //bmp control value
     int vrx = mySerial.parseInt();
     int vry = mySerial.parseInt();
+
     Serial.print(flag);
     Serial.print(",");
     Serial.print(vrx);
     Serial.print(",");
     Serial.println(vry);
-    //Serial.write(mySerial.read()); // 시리얼에 출력
-
+  
     // calculate speed of both motors according to the x axis
     int pwmX = convertToPWM(vrx);
     int pwmL = pwmX;
@@ -111,31 +119,43 @@ void loop() {
     pwmR = pwmR - pwmY;
 
     if (flag == 0) { //bpm 이 정상범위가 아니면
-      //LED red
+      digitalWrite(LED_R, HIGH);      //LED red
+      digitalWrite(LED_G, LOW);
+      digitalWrite(LED_B, LOW);
     }
 
     else if (flag == 2) {
 
+      digitalWrite(LED_R, LOW);
+      digitalWrite(LED_G, LOW);
+      digitalWrite(LED_B, HIGH);     // LED blue
+      delay(500);
+
       int alco_value = analogRead(alco_pin); //alcohol senser pin read
-
-      //LED 불 하는거 blue
-
-      Serial.println(123221);
-
-      //범위 알아서 지정
-      if (alco_value < 50) { //alcohol sensor value is normal, drive RC car
-        //LED green
+      Serial.println(analogRead(alco_pin));
+      
+      if (alco_value < 80) { //alcohol sensor value is normal, drive RC car
+        digitalWrite(LED_G, HIGH);     //LED green
+        digitalWrite(LED_B, LOW);
+        digitalWrite(LED_R, LOW);
         drive(pwmL, pwmR);
+      }
+
+      else {
+        digitalWrite(LED_R, HIGH);      //LED red
+        digitalWrite(LED_G, LOW);
+        digitalWrite(LED_B, LOW);
+
       }
     }
 
     else { //bpm 정상범위이면, drive RC car
-      //LED green
+      digitalWrite(LED_G, HIGH);     //LED green
+      digitalWrite(LED_R, LOW);
+      digitalWrite(LED_B, LOW);
       drive(pwmL, pwmR);
     }
 
   }
-
-
 
 }
