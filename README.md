@@ -9,3 +9,4 @@ Component Used list
 2. pulse/heart rate sensor : SZH-HWS001
 3. bluetooth module : HM-10
 
+Demo video - link : https://youtu.be/Z4mZsI-wwds
